@@ -9,3 +9,4 @@ Configuration, guides, and tooling for ChromeOS and Crostini Linux container env
 
 ## Documentation
 - [Running Syncthing on a Chromebook (via Crostini)](docs/chromebook_syncthing_guide.md)
+- [Session Notes: Syncthing Crostini Management, Herdr Guide, & Network Audit (2026-10-25)](docs/SESSION_NOTES_20261025_SYNCTHING_CLI_CROSTINI_AND_NETWORK_AUDIT.md)
