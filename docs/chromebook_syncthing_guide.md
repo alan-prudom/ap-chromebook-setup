@@ -16,24 +16,32 @@ sudo apt install syncthing
 
 *(Note: For the absolute latest release rather than the Debian stable package, the upstream Syncthing apt repository can be configured instead).*
 
-### Step 2: Enable & Start Syncthing Service
-Run Syncthing under your user's systemd session so it launches automatically:
+### Step 2: Starting Syncthing
+
+You have two ways to start Syncthing in Crostini:
+
+#### Option A: Running as a Persistent User Service (Recommended)
+Run Syncthing under your user's systemd session so it starts and restarts automatically:
 
 ```bash
 systemctl --user enable --now syncthing
 ```
 
-Check status anytime with:
+*(Note: If your distribution/package doesn't bundle a systemd user unit, you can place a unit file at `~/.config/systemd/user/syncthing.service` with `ExecStart=/usr/bin/syncthing -no-browser -no-restart -logflags=0`).*
+
+#### Option B: Starting Manually in the Background
+To run Syncthing directly from the shell without spawning a local browser window:
+
 ```bash
-systemctl --user status syncthing
+syncthing -no-browser &
 ```
 
 ### Step 3: Access the Web GUI
 Open Chrome in ChromeOS and visit:
 ```text
-http://localhost:8384
+http://127.0.0.1:8384
 ```
-ChromeOS automatically maps and forwards `localhost` ports from the Crostini container directly to the browser.
+ChromeOS automatically maps and forwards `localhost` / `127.0.0.1` ports from the Crostini container directly to the Chrome browser.
 
 ---
 
@@ -49,16 +57,17 @@ By default, Crostini has access to its own isolated file system (`/home/<usernam
    /mnt/chromeos/MyFiles/Downloads
    ```
    *(Removable media/SD cards will typically appear under `/mnt/chromeos/removable/<label>` if shared).*
-5. When adding or accepting a folder in the Syncthing Web UI (`http://localhost:8384`), set the folder path to the `/mnt/chromeos/...` path.
+5. When adding or accepting a folder in the Syncthing Web UI (`http://127.0.0.1:8384`), set the folder path to the `/mnt/chromeos/...` path.
 
 ---
 
-## 3. Container Lifecycle & Background Syncing
+## 3. Container Lifecycle & Network Discovery
 
 * **Container Sleep**: When all Crostini terminal windows and Linux applications are closed, ChromeOS suspends/shuts down the container after a short idle timeout to conserve battery.
 * **Continuous Syncing**: To ensure Syncthing continues running and syncing in the background:
   * Leave a terminal window open or keep a lightweight background terminal/app running in ChromeOS.
   * Alternatively, prevent ChromeOS from sleeping or closing the Linux VM when on AC power if unattended syncing is needed.
+* **Network & Discovery**: Syncthing uses port `22000/TCP` (and UDP) for sync traffic and `21027/UDP` for local discovery. If syncing across subnets or strict firewalls, global discovery relays and Tailscale can bridge connectivity transparently.
 
 ---
 
@@ -114,7 +123,7 @@ curl -s http://127.0.0.1:8384/rest/system/ping
 
 ## 6. References & External Links
 
-* [Google AI Shared Thread](https://share.google/aimode/cb3HUJ1x2xGAZvZoT)
+* [Google AI Shared Search Thread: Chromebook Crostini How to Start Syncthing](https://share.google/aimode/cb3HUJ1x2xGAZvZoT)
 * [Syncthing Documentation: CLI Command Reference](https://docs.syncthing.net/v1.27.4/users/syncthing.html)
 * [Syncthing Forum: Command to check the status of Syncthing](https://forum.syncthing.net/t/command-to-check-the-status-of-syncthing/5266)
 * [Syncthing Forum: How to programmatically set up Syncthing via built-in CLI](https://forum.syncthing.net/t/howto-programatically-set-up-syncthing-via-the-bulit-in-cli-command/23682/4)
