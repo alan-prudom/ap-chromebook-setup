@@ -2,7 +2,7 @@
 
 **Version Target:** Herdr `0.9.5+` (Stable Channel)  
 **Primary Client Environment:** ChromeOS Crostini (`penguin` Debian container)  
-**Fleet Nodes:** `Local` (Chromebook), `ap-elite`, `AP-HP-G5`, `popos`, `thinkpad`, `aws-caddy`  
+**Fleet Nodes:** `Local` (Chromebook), `ap-elite`, `ap-macbook`, `AP-HP-G5`, `popos`, `thinkpad`, `aws-caddy`  
 **Canonical Upstream Docs:** [https://herdr.dev/tui/docs/](https://herdr.dev/tui/docs/)
 
 ---
@@ -215,6 +215,9 @@ Run these from an interactive terminal pane so SSH can authenticate:
 # Home Server (ap-elite) — Already added!
 herdr machine add alan@100.110.200.56 --label ap-elite
 
+# MacBook Air (ap-macbook / alans-macbook-air-9.manee-dab.ts.net)
+herdr machine add alan@100.87.229.122 --label ap-macbook
+
 # Pop!_OS Desktop
 herdr machine add alan@100.127.14.83 --label popos
 
@@ -246,6 +249,45 @@ herdr machine disable <profile-id>  # Temporarily stop connecting to a machine
 herdr machine enable <profile-id>   # Re-enable a disabled machine
 herdr machine remove <profile-id>   # Remove profile from sidebar (leaves remote server running)
 ```
+
+### 6.6 Keeping macOS (`ap-macbook`) Sessions Awake When Screen Is Locked
+When locking the screen on macOS, the system and Wi-Fi/Tailscale interfaces aggressively enter deep sleep shortly after the display turns off, freezing SSH and Herdr sessions.
+
+1. **Prevent Sleep via `pmset` (Run on `ap-macbook`):**
+   ```bash
+   # Prevent system sleep while on AC power (allows display to still turn off/lock)
+   sudo pmset -c sleep 0
+
+   # Prevent idle sleep while any remote SSH/terminal user is logged in
+   sudo pmset -a ttyskeepawake 1
+
+   # Enable Wake for network access
+   sudo pmset -a womp 1
+   ```
+   *(To also prevent sleep on battery when locked, use `sudo pmset -a sleep 0` or run `caffeinate -isd &` inside your macOS session).*
+
+2. **SSH KeepAlives on Chromebook (`~/.ssh/config`):**
+   Configured in `~/.ssh/config` so the local SSH client detects drops quickly and keeps Tailscale connections warm:
+   ```ssh-config
+   Host ap-macbook 100.87.229.122 alans-macbook-air-9.manee-dab.ts.net
+       HostName 100.87.229.122
+       User alan
+       ServerAliveInterval 15
+       ServerAliveCountMax 3
+       TCPKeepAlive yes
+
+   Host ap-elite 100.110.200.56
+       HostName 100.110.200.56
+       User alan
+       ServerAliveInterval 15
+       ServerAliveCountMax 3
+       TCPKeepAlive yes
+
+   Host *
+       ServerAliveInterval 15
+       ServerAliveCountMax 3
+       TCPKeepAlive yes
+   ```
 
 ---
 
@@ -389,3 +431,4 @@ herdr pane layout --pane "$HERDR_PANE_ID"
 | **Remote machine (`ap-elite`) shows `! auth` or `disconnected` in sidebar** | SSH connection timed out or needs interactive password/key authentication. | Run `herdr machine reconnect ap-elite` in any pane (or set up passwordless SSH keys with `ssh-copy-id alan@100.110.200.56`). |
 | **A keyboard shortcut (chord) does nothing** | ChromeOS or the ChromeOS Terminal app intercepted the shortcut before Herdr saw it. | Use prefix mode (`Ctrl+b` then key), check `Ctrl+b ?`, or rebind the action under `[keys]` in `~/.config/herdr/config.toml`. |
 | **Need to inspect server or client logs** | Diagnosing startup or SSH bridge issues. | Check `~/.config/herdr/herdr-server.log` and `~/.config/herdr/herdr-client.log`. |
+| **macOS (`ap-macbook`) SSH / Herdr session freezes on lock screen** | macOS puts system/Wi-Fi/Tailscale to sleep when the display locks. | Run `sudo pmset -c sleep 0`, `sudo pmset -a ttyskeepawake 1`, and `sudo pmset -a womp 1` on the Mac (or `caffeinate -isd &`), and ensure `ServerAliveInterval 15` is set in `~/.ssh/config` (see [Section 6.6](#66-keeping-macos-ap-macbook-sessions-awake-when-screen-is-locked)). |
