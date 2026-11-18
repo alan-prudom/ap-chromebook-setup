@@ -39,10 +39,37 @@ else
     fi
 fi
 
-# 3. Bring Tailscale link up if not connected
+# 3. Ensure SSH service is running for remote access
+echo "[*] Checking SSH daemon status..."
+if command -v systemctl >/dev/null 2>&1 && systemctl is-system-running >/dev/null 2>&1; then
+    if ! systemctl is-active --quiet ssh; then
+        echo "[+] Starting ssh service via systemctl..."
+        systemctl enable --now ssh
+    else
+        echo "[✓] SSH service is already running."
+    fi
+elif command -v service >/dev/null 2>&1; then
+    if ! service ssh status >/dev/null 2>&1; then
+        echo "[+] Starting ssh service via service..."
+        service ssh start
+    else
+        echo "[✓] SSH service is already running."
+    fi
+fi
+
+# 4. Bring Tailscale link up if not connected
 echo "[*] Verifying Tailscale connection state..."
 if command -v tailscale >/dev/null 2>&1; then
-    STATUS=$(tailscale status 2>&1 || true)
+    # Allow a brief moment if tailscaled was just started
+    for _ in {1..10}; do
+        STATUS=$(tailscale status 2>&1 || true)
+        if echo "$STATUS" | grep -qi "Tailscale is starting"; then
+            sleep 1
+        else
+            break
+        fi
+    done
+
     if echo "$STATUS" | grep -qi "Tailscale is stopped"; then
         echo "[+] Running 'tailscale up'..."
         tailscale up --ssh --accept-routes
@@ -51,6 +78,13 @@ if command -v tailscale >/dev/null 2>&1; then
     else
         echo "[✓] Tailscale is connected:"
         tailscale status --peers=false || true
+    fi
+
+    # Display active Tailscale IP for easy reference
+    TS_IP=$(tailscale ip -4 2>/dev/null || true)
+    if [[ -n "$TS_IP" ]]; then
+        echo "[i] Tailscale IPv4: $TS_IP"
+        echo "[i] Connect via: ssh alanp2@$TS_IP"
     fi
 else
     echo "[-] 'tailscale' CLI not found in PATH." >&2
