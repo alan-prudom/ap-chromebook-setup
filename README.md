@@ -11,6 +11,8 @@ Configuration, guides, and tooling for ChromeOS and Crostini Linux container env
 - [Crostini Raw USB Imager Guide](docs/USB_Imager_Documentation.md)
 - [Running Syncthing on a Chromebook (via Crostini)](docs/chromebook_syncthing_guide.md)
 - [Running Herdr on a Chromebook (via Crostini)](docs/chromebook_herdr_guide.md)
+- [Test Plan: Local Dispatcher & Conflict Resolver](docs/TEST_PLAN_LOCAL_DISPATCHER_AND_CONFLICT_RESOLVER.md)
+- [Session Notes: Local Dispatcher (Rust Axum) Systemd Port & SilverBullet Conflict Resolver (2026-11-18)](docs/SESSION_NOTES_20261118_LOCAL_DISPATCHER_SYSTEMD_AND_CONFLICT_RESOLVER.md)
 - [Session Notes: SSH, Tailscale Stabilization, ADB Bridge, & Mobile Storage Automation (2026-11-18)](docs/SESSION_NOTES_20261118_SSH_TAILSCALE_ADB_AND_STORAGE_AUTOMATION.md)
 - [Session Notes: USB Imager Enhancements & Safe Ejection (2026-11-09)](docs/SESSION_NOTES_20261109_USB_IMAGER_ENHANCEMENTS_AND_SAFE_EJECTION.md)
 - [Session Notes: Disk Cleanup, uv Upgrade, & Python 3.14 Alignment (2026-11-06)](docs/SESSION_NOTES_20261106_DISK_CLEANUP_UV_UPGRADE_AND_PYTHON314_ALIGNMENT.md)
